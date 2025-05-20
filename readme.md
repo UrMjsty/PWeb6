@@ -27,7 +27,7 @@ npm install
 
 npm start
 ```
-Open http://localhost:3000 (or the port specified by your setup) in your browser.
+Open http://localhost:3000 (or the port specified by your setup) in your browser.<br/>
 4. Build for Production (optional):
 ``` bash
 
