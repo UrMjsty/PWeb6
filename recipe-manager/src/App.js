@@ -6,13 +6,24 @@ import RecipeFilter from './components/RecipeFilter';
 import './App.css';
 
 function App() {
-  const [recipes, setRecipes] = useState([]);
-  const [darkMode, setDarkMode] = useState(false);
+  const [recipes, setRecipes] = useState(() => {
+    const saved = localStorage.getItem('recipes');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse recipes from localStorage:", e);
+        return [];
+      }
+    }
+    return [];
+  });  const [darkMode, setDarkMode] = useState(false);
   const [filter, setFilter] = useState('all');
 
   // Load recipes from localStorage on initial render
-  useEffect(() => {
+ /* useEffect(() => {
     const storedRecipes = localStorage.getItem('recipes');
+    console.log('Retrieved from localStorage:', storedRecipes);
     if (storedRecipes) {
       setRecipes(JSON.parse(storedRecipes));
     }
@@ -22,12 +33,17 @@ function App() {
       setDarkMode(JSON.parse(storedDarkMode));
     }
   }, []);
-
+*/
   // Save recipes to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('recipes', JSON.stringify(recipes));
+    try {
+      const serialized = JSON.stringify(recipes);
+      localStorage.setItem('recipes', serialized);
+      console.log("Saved to localStorage. Length:", recipes.length);
+    } catch (e) {
+      console.error("Failed to save recipes to localStorage:", e);
+    }
   }, [recipes]);
-
   // Save darkMode to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
@@ -62,8 +78,16 @@ function App() {
   const categories = ['all', 'liked', ...new Set(recipes.map(recipe => recipe.category))];
 
   return (
+
       <div className={`app ${darkMode ? 'dark-mode' : 'light-mode'}`}>
         <header>
+          <button onClick={() => {
+            const test = localStorage.getItem('recipes');
+            console.log("Direct localStorage test:", test);
+            console.log("Parsed:", test ? JSON.parse(test) : "nothing to parse");
+          }}>
+            Test localStorage
+          </button>
           <h1>Recipe Manager</h1>
           <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
         </header>
