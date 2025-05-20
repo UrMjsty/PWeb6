@@ -365,3 +365,11 @@ main {
                opacity: 0;
            }
        }
+       .recipe-count {
+           background-color: var(--primary-color);
+           color: white;
+           padding: 0.25rem 0.5rem;
+           border-radius: 20px;
+           font-size: 0.8rem;
+           margin-left: 1rem;
+       }

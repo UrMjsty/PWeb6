@@ -106,6 +106,7 @@ function App() {
               filter={filter}
               setFilter={setFilter}
               categories={categories}
+              recipeCount={filteredRecipes.length}
           />
 
           <RecipeList
