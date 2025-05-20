@@ -206,3 +206,48 @@ main {
   font-style: italic;
 }
 
+       /* Add to App.css */
+       :root {
+         --primary-color: #4a6fa5;
+         --accent-color: #ff6b6b;
+         --light-bg: #f9f9f9;
+         --dark-bg: #1a1a2e;
+         --light-card: #ffffff;
+         --dark-card: #2a2a3c;
+         --light-text: #333333;
+         --dark-text: #e6e6e6;
+         --box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+       }
+
+       .light-mode {
+         background-color: var(--light-bg);
+         color: var(--light-text);
+       }
+
+       .dark-mode {
+         background-color: var(--dark-bg);
+         color: var(--dark-text);
+       }
+
+       .app {
+         max-width: 1200px;
+         margin: 0 auto;
+         padding: 2rem;
+         font-family: 'Poppins', sans-serif;
+       }
+
+       header {
+         margin-bottom: 3rem;
+         border-bottom: 1px solid rgba(150,150,150,0.1);
+         padding-bottom: 1.5rem;
+       }
+
+       header h1 {
+         font-size: 2.5rem;
+         margin-bottom: 0.5rem;
+         background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+         -webkit-background-clip: text;
+         background-clip: text;
+         color: transparent;
+         display: inline-block;
+       }
