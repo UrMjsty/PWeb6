@@ -17,8 +17,15 @@ function App() {
       }
     }
     return [];
-  });  const [darkMode, setDarkMode] = useState(false);
-  const [filter, setFilter] = useState('all');
+  });
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    console.log("Retrieved theme from localStorage:", saved);
+    if (saved !== null) {
+      return JSON.parse(saved);
+    }
+    return false;
+  });  const [filter, setFilter] = useState('all');
 
   // Load recipes from localStorage on initial render
  /* useEffect(() => {
