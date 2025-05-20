@@ -6,6 +6,7 @@ function RecipeForm({ addRecipe }) {
     const [ingredients, setIngredients] = useState('');
     const [instructions, setInstructions] = useState('');
     const [category, setCategory] = useState('');
+   // const [formExpanded, setFormExpanded] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
