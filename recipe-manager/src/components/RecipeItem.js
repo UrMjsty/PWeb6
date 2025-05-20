@@ -12,6 +12,7 @@ function RecipeItem({ recipe, removeRecipe, toggleLike }) {
                         className={`like-btn ${recipe.liked ? 'liked' : ''}`}
                     >
                         {recipe.liked ? '❤️' : '🤍'}
+                        {recipe.liked && <span className="like-pulse"></span>}
                     </button>
                     <button onClick={() => removeRecipe(recipe.id)} className="delete-btn">
                         🗑️
