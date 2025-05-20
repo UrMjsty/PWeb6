@@ -88,13 +88,6 @@ function App() {
 
       <div className={`app ${darkMode ? 'dark-mode' : 'light-mode'}`}>
         <header>
-          <button onClick={() => {
-            const test = localStorage.getItem('recipes');
-            console.log("Direct localStorage test:", test);
-            console.log("Parsed:", test ? JSON.parse(test) : "nothing to parse");
-          }}>
-            Test localStorage
-          </button>
           <h1>Recipe Manager</h1>
           <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
         </header>
