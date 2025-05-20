@@ -1,0 +1,23 @@
+// src/components/RecipeFilter.js
+import React from 'react';
+
+function RecipeFilter({ filter, setFilter, categories }) {
+    return (
+        <div className="recipe-filter">
+            <label htmlFor="filter">Filter by: </label>
+            <select
+                id="filter"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+            >
+                {categories.map((category, index) => (
+                    <option key={index} value={category}>
+                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </option>
+                ))}
+            </select>
+        </div>
+    );
+}
+
+export default RecipeFilter;
