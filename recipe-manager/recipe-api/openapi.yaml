@@ -1,0 +1,181 @@
+openapi: 3.0.3
+info:
+  title: Recipe Manager API
+  description: API for managing recipes with role-based access control
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Recipe:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        ingredients:
+          type: string
+        instructions:
+          type: string
+        category:
+          type: string
+        liked:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [title, ingredients, instructions, category]
+security:
+  - BearerAuth: []
+paths:
+  /token:
+    post:
+      summary: Generate JWT for a role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  enum: [VISITOR, WRITER, ADMIN]
+              required: [role]
+      responses:
+        '200':
+          description: JWT generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '400':
+          description: Invalid role
+  /api/recipes:
+    get:
+      summary: Fetch paginated recipes
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: skip
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of recipes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  skip:
+                    type: integer
+                  limit:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recipe'
+      security:
+        - BearerAuth: []
+    post:
+      summary: Create a new recipe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recipe'
+      responses:
+        '201':
+          description: Recipe created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '400':
+          description: Missing required fields
+        '403':
+          description: Insufficient permissions
+      security:
+        - BearerAuth: []
+  /api/recipes/{id}:
+    get:
+      summary: Fetch a single recipe
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Recipe details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '404':
+          description: Recipe not found
+      security:
+        - BearerAuth: []
+    delete:
+      summary: Delete a recipe
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Recipe deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '403':
+          description: Insufficient permissions
+        '404':
+          description: Recipe not found
+      security:
+        - BearerAuth: []
+  /api/recipes/{id}/like:
+    patch:
+      summary: Toggle recipe like status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Like status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '403':
+          description: Insufficient permissions
+        '404':
+          description: Recipe not found
+      security:
+        - BearerAuth: []

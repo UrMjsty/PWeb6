@@ -3,7 +3,9 @@ import RecipeList from './components/RecipeList';
 import RecipeForm from './components/RecipeForm';
 import ThemeToggle from './components/ThemeToggle';
 import RecipeFilter from './components/RecipeFilter';
+import recipeApi from './frontend-api.js';
 import './App.css';
+import LoginForm from "./components/LoginForm";
 
 function App() {
   const [recipes, setRecipes] = useState(() => {
@@ -26,21 +28,14 @@ function App() {
     }
     return false;
   });  const [filter, setFilter] = useState('all');
-
-  // Load recipes from localStorage on initial render
- /* useEffect(() => {
-    const storedRecipes = localStorage.getItem('recipes');
-    console.log('Retrieved from localStorage:', storedRecipes);
-    if (storedRecipes) {
-      setRecipes(JSON.parse(storedRecipes));
-    }
-
-    const storedDarkMode = localStorage.getItem('darkMode');
-    if (storedDarkMode) {
-      setDarkMode(JSON.parse(storedDarkMode));
-    }
-  }, []);
-*/
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [userRole, setUserRole] = useState('VISITOR');
+  const [pagination, setPagination] = useState({
+    limit: 10,
+    skip: 0,
+    total: 0
+  });
   // Save recipes to localStorage whenever they change
   useEffect(() => {
     try {
@@ -56,25 +51,104 @@ function App() {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
     document.body.className = darkMode ? 'dark-mode' : 'light-mode';
   }, [darkMode]);
-
-  const addRecipe = (recipe) => {
-    const newRecipe = {
-      ...recipe,
-      id: Date.now(),
-      liked: false
+  useEffect(() => {
+    const initializeUser = async () => {
+      try {
+        await recipeApi.getToken(userRole);
+        fetchRecipes();
+      } catch (err) {
+        setError("Failed to authenticate. Please try again.");
+        setIsLoading(false);
+      }
     };
-    setRecipes([...recipes, newRecipe]);
+
+    initializeUser();
+  }, [userRole]);
+  // Fetch recipes with pagination
+  const fetchRecipes = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await recipeApi.getRecipes(pagination.limit, pagination.skip);
+      setRecipes(response.data);
+      setPagination({
+        ...pagination,
+        total: response.total
+      });
+      setIsLoading(false);
+    } catch (err) {
+      setError("Could not fetch recipes. " + err.message);
+      setIsLoading(false);
+    }
   };
 
-  const removeRecipe = (id) => {
-    setRecipes(recipes.filter(recipe => recipe.id !== id));
+  // Handle role change
+  const handleRoleChange = async (role) => {
+    setUserRole(role);
+    try {
+      await recipeApi.getToken(role);
+      fetchRecipes();
+    } catch (err) {
+      setError("Failed to change role. Please try again.");
+    }
+  };
+  const addRecipe = async (recipe) => {
+    try {
+      await recipeApi.createRecipe(recipe);
+      fetchRecipes(); // Refresh recipes after adding
+    } catch (err) {
+      setError("Failed to add recipe: " + err.message);
+    }
   };
 
-  const toggleLike = (id) => {
-    setRecipes(recipes.map(recipe =>
-        recipe.id === id ? { ...recipe, liked: !recipe.liked } : recipe
-    ));
+  // Remove a recipe through API
+  const removeRecipe = async (id) => {
+    try {
+      await recipeApi.deleteRecipe(id);
+      fetchRecipes(); // Refresh recipes after deleting
+    } catch (err) {
+      setError("Failed to delete recipe: " + err.message);
+    }
   };
+
+  // Toggle like through API
+  const toggleLike = async (id) => {
+    try {
+      await recipeApi.toggleLike(id);
+      fetchRecipes(); // Refresh recipes after toggling like
+    } catch (err) {
+      setError("Failed to update recipe: " + err.message);
+    }
+  };
+
+  // Handle pagination
+  const handlePageChange = (newSkip) => {
+    setPagination({
+      ...pagination,
+      skip: newSkip
+    });
+  };
+
+  // Load more recipes
+  const loadMore = () => {
+    setPagination({
+      ...pagination,
+      skip: pagination.skip + pagination.limit
+    });
+  };
+
+  // Effect for pagination changes
+  useEffect(() => {
+    fetchRecipes();
+  }, [pagination.skip, pagination.limit]);
+
+  // Dark mode effect remains the same
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    document.body.className = darkMode ? 'dark-mode' : 'light-mode';
+  }, [darkMode]);
+
 
   const filteredRecipes = filter === 'all'
       ? recipes
@@ -85,15 +159,19 @@ function App() {
   const categories = ['all', 'liked', ...new Set(recipes.map(recipe => recipe.category))];
 
   return (
-
       <div className={`app ${darkMode ? 'dark-mode' : 'light-mode'}`}>
         <header>
           <h1>Recipe Manager</h1>
-          <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+          <div className="header-controls">
+            <LoginForm userRole={userRole} onRoleChange={handleRoleChange} />
+            <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+          </div>
         </header>
 
         <main>
-          <RecipeForm addRecipe={addRecipe} />
+          {error && <div className="error-message">{error}</div>}
+
+          {userRole !== 'VISITOR' && <RecipeForm addRecipe={addRecipe} />}
 
           <RecipeFilter
               filter={filter}
@@ -102,14 +180,45 @@ function App() {
               recipeCount={filteredRecipes.length}
           />
 
-          <RecipeList
-              recipes={filteredRecipes}
-              removeRecipe={removeRecipe}
-              toggleLike={toggleLike}
-          />
+          {isLoading ? (
+              <div className="loading">
+                <div className="loading-spinner"></div>
+              </div>
+          ) : (
+              <>
+                <RecipeList
+                    recipes={filteredRecipes}
+                    removeRecipe={removeRecipe}
+                    toggleLike={toggleLike}
+                    userRole={userRole}
+                />
+
+                {/* Pagination controls */}
+                <div className="pagination">
+                  {pagination.skip > 0 && (
+                      <button
+                          onClick={() => handlePageChange(Math.max(0, pagination.skip - pagination.limit))}
+                          className="pagination-btn"
+                      >
+                        Previous
+                      </button>
+                  )}
+
+                  {pagination.skip + pagination.limit < pagination.total && (
+                      <button
+                          onClick={loadMore}
+                          className="pagination-btn"
+                      >
+                        Next
+                      </button>
+                  )}
+                </div>
+              </>
+          )}
         </main>
       </div>
   );
 }
+
 
 export default App;
