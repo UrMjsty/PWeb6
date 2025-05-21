@@ -1,7 +1,8 @@
+// components/RecipeList.js
 import React from 'react';
 import RecipeItem from './RecipeItem';
 
-function RecipeList({ recipes, removeRecipe, toggleLike }) {
+function RecipeList({ recipes, removeRecipe, toggleLike, userRole }) {
     if (recipes.length === 0) {
         return <p className="no-recipes">No recipes found. Add some recipes!</p>;
     }
@@ -14,6 +15,7 @@ function RecipeList({ recipes, removeRecipe, toggleLike }) {
                     recipe={recipe}
                     removeRecipe={removeRecipe}
                     toggleLike={toggleLike}
+                    userRole={userRole}
                 />
             ))}
         </div>
